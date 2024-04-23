@@ -32,13 +32,20 @@ app.use(bodyParser.urlencoded({ extended: true }));
 const urlMap = {};
 
 // Define route to handle POST requests to shorten URLs
+
 app.post('/api/shorturl', (req, res) => {
   const originalUrl = req.body.url;
 
-  // Validate the submitted URL
+  // Validate the submitted URL format
+  const urlPattern = /^(https?):\/\/www\.[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(\/\S*)?$/;
+  if (!urlPattern.test(originalUrl)) {
+    return res.status(400).json({ error: 'invalid url' });
+  }
+
+  // Validate the submitted URL by performing a DNS lookup
   dns.lookup(new URL(originalUrl).hostname, (err) => {
     if (err) {
-      return res.status(400).json({ error: 'Invalid URL' });
+      return res.status(400).json({ error: 'invalid url' });
     }
 
     // Generate a short code for the URL
